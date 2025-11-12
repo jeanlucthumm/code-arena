@@ -22,13 +22,22 @@ dependencies = [
     { name = "click" },
 ]
 
+[package.optional-dependencies]
+test = [
+    { name = "pytest" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "click", specifier = ">=8.3.0" }]
+requires-dist = [
+    { name = "click", specifier = ">=8.3.0" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=7.4" },
+]
+provides-extras = ["test"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=9.0.1" }]
