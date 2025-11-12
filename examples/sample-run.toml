@@ -1,0 +1,9 @@
+run_tag = "demo"
+attempt_count = 2
+prompt = """
+Implement the feature described in ticket ABC-123.
+"""
+cli_command = [
+  "codex",
+  "run",
+]
