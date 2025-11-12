@@ -373,3 +373,13 @@ ______________________________________________________________________
 
 - Should human review always be required before merging?
 - Should we introduce “hard mode” where AI can propose direct PRs?
+
+# **11. Implementation Chunks**
+
+**Orchestrator & Worktree Setup.** CLI scaffold that reads run config, creates per-attempt worktrees, and prepares container launch metadata.
+
+**Container Runner & Agent Bridge.** Launch devenv OCI containers per worktree, feed prompts to CLI coders, stream logs, and manage their lifecycle.
+
+**Result Harvest & Comparison.** Gather diffs and metadata from each attempt, stash per-attempt artifacts, and determine the winner with rationale placed in a report directory.
+
+**Cleanup & Post-Run Tasks.** Prune worktrees and containers, archive logs, and reset the environment so the next tournament starts from a clean state.
