@@ -1,8 +1,0 @@
-/home/jeanluc/Code/code-arena/.devenv/flake.json
-/home/jeanluc/Code/code-arena/.devenv.flake.nix
-/home/jeanluc/Code/code-arena/.env
-/home/jeanluc/Code/code-arena/.env.example
-/home/jeanluc/Code/code-arena/devenv.local.nix
-/home/jeanluc/Code/code-arena/devenv.lock
-/home/jeanluc/Code/code-arena/devenv.nix
-/home/jeanluc/Code/code-arena/devenv.yaml
