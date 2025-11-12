@@ -137,12 +137,30 @@ ______________________________________________________________________
 
    - uses a separate LLM judge (also CLI-based), if desired.
 
-1. **Synthesis Component (Optional)**
+1. **Synthesis Component (Optional / Deferred)**
 
-   - Takes the winning implementation
-   - Incorporates best ideas or improvements from other attempts
-   - Uses a dedicated “editor” prompt
-   - Outputs a new set of changes to the winning worktree
+   - Reserved for future work; default flow stops after judging for now
+
+### **5.2 Host Orchestrator Scope**
+
+- Reads a YAML config file (see §5.3) to determine attempt count, container image, CLI launcher, base prompt, and worktree root.
+- Creates Git worktrees on the host and spawns one prebuilt devenv container per worktree.
+- Mounts only the assigned worktree into each container, injects the configured prompt/command, and lets the CLI agent run autonomously.
+- Records completion solely by container exit status; there are no retries, rescheduling, or post-run cleanup beyond pruning worktrees.
+- Treats every container failure as a terminal outcome that downstream judging must handle.
+
+### **5.3 Run Configuration (YAML)**
+
+Suggested keys for the config file:
+
+- `num_attempts`
+- `worktree_root`
+- `container_image`
+- `cli_command` (full command with flags/permissions the agent needs)
+- `base_prompt` or path to the prompt template
+- `timeout_seconds` (per-container wall clock limit)
+
+Additional per-attempt env vars or mounts can be added as needed, but the orchestrator stays lightweight and declarative.
 
 ______________________________________________________________________
 
@@ -150,6 +168,7 @@ ______________________________________________________________________
 
 ### **Step 1 — Prepare**
 
+- Read the YAML config to determine attempt count, image, CLI launcher, prompt, timeout, and worktree root.
 - Host creates N Git worktrees:
   `.attempts/1`, `.attempts/2`, ... `.attempts/N`
 - Each worktree is tied to the same base commit.
@@ -172,6 +191,10 @@ For each worktree:
   - iterative editing (if allowed)
   - optional self-testing
   - creates commits in the worktree
+
+- Whether tests run mid-attempt is entirely up to the agent prompt/config; the framework just ensures tools are available.
+
+- Containers run with a single wall-clock timeout from config; if a container exits or times out, we record the attempt as-is with no retry.
 
 At this point, the host filesystem now contains:
 
@@ -197,22 +220,19 @@ Performed on the host (or in another neutral container):
 
 1. Rank all attempts
 
-1. Declare a winner
+1. Declare a winner after running 1:1 tournament rounds (bracket or round-robin) until one attempt beats all others.
 
-1. Produce a Markdown/HTML report summarizing all attempts
+1. Produce judge-facing artifacts for each matchup plus a final narrative on why the champion defeated the field.
 
-### **Step 4 — Optional Synthesis Pass**
+#### **Tournament Judging Deliverables**
 
-- Provide the judge with the winning implementation + patches from other attempts
+- For every comparison, capture the paired diffs/tests plus the judge’s short rationale naming the winner.
+- Store the per-match rationales and bracket outcome in a single Markdown report; container logs stay inside the containers unless humans need to inspect them manually.
+- Detect empty or failed attempts by the absence of commits and let the judge treat them as forfeits.
 
-- Ask the editor agent to integrate improvements only if clearly beneficial
+### **Step 4 — Optional Synthesis Pass (Deferred)**
 
-- Generate a final combined implementation
-
-- Save to:
-
-  - a special synthesis worktree, or
-  - replace the winning worktree
+- Placeholder for a future editor agent; the current scope stops after tournament judging.
 
 ### **Step 5 — Human Review**
 
@@ -248,7 +268,7 @@ Autonomous agents can:
 
 - **No privileges, no capabilities**
 
-- **Network disabled or strictly allowlisted**
+- **Network allowed by default**, with the worktree mount remaining the only writable host surface
 
 - **Optional timeouts + resource limits (CPU/memory)**
 
